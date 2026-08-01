@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
-import { HeroCarousel } from "@/components/HeroCarousel";
+// import { HeroCarousel } from "@/components/HeroCarousel";
 import { SplitFeature } from "@/components/SplitFeature";
-import { heroSlides } from "@/lib/heroSlides";
+// import { heroSlides } from "@/lib/heroSlides";
 import type { ImageSource } from "@/lib/posts";
 
 export const metadata: Metadata = {
@@ -44,9 +44,9 @@ export default function HomePage() {
         </section>
       </div>
 
-      <div className="ff-container ff-container--wide ff-section--tight">
+      {/* <div className="ff-container ff-container--wide ff-section--tight">
         <HeroCarousel slides={heroSlides} />
-      </div>
+      </div> */}
 
       <div className="ff-container ff-stack ff-section">
         <SplitFeature
