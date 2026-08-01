@@ -1,28 +1,36 @@
 import type { MetadataRoute } from "next";
 
+import { authors } from "@/lib/authors";
+import { getAllPosts, getAllTags } from "@/lib/content";
+import { SITE_URL } from "@/lib/site";
+
 export const dynamic = "force-static";
 
-const BASE = "https://fault.foundation";
+/** Routes that are hand-written pages rather than generated content. */
+const STATIC_ROUTES = [
+  "/",
+  "/about/",
+  "/news/",
+  "/policies/",
+  "/bylaws/",
+  "/disciplinary-policy/",
+  "/privacy-policy/",
+  "/roadmap/",
+  "/overfault-rulebook/",
+];
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const routes = [
-    "/",
-    "/about/",
-    "/news/",
-    "/policies/",
-    "/bylaws/",
-    "/disciplinary-policy/",
-    "/privacy-policy/",
-    "/roadmap/",
-    "/overfault-rulebook/",
-    "/2025/11/the-fault-foundation-who-we-are-and-whats-next/",
-    "/2025/12/discord-and-sharing-personal-information/",
-    "/2026/01/community-verification/",
-    "/author/admin_saivw2jq/",
-    "/tag/discussion/",
-    "/tag/future/",
-    "/tag/news/",
-    "/tag/update/",
+  const posts = getAllPosts();
+
+  return [
+    ...STATIC_ROUTES.map((route) => ({ url: `${SITE_URL}${route}` })),
+    // Derived, so a new article can never be silently omitted — which is what
+    // the previous hardcoded route list made easy.
+    ...posts.map((post) => ({
+      url: `${SITE_URL}${post.href}`,
+      lastModified: post.updatedISO ?? post.dateISO,
+    })),
+    ...Object.values(authors).map((author) => ({ url: `${SITE_URL}${author.path}` })),
+    ...getAllTags().map((tag) => ({ url: `${SITE_URL}/tag/${tag}/` })),
   ];
-  return routes.map((route) => ({ url: `${BASE}${route}` }));
 }

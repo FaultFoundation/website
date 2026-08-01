@@ -4,7 +4,6 @@ import { SiteFooter } from "@/components/SiteFooter";
 import { SiteHeader } from "@/components/SiteHeader";
 
 import "@/styles/fonts.css";
-import "@/styles/wp-blocks.css";
 import "@/styles/wp-globals.css";
 // Redesign layer — must come last so ff-* rules win specificity ties.
 import "@/styles/theme.css";

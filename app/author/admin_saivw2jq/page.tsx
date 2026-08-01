@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 
 import { NewsCard } from "@/components/NewsCard";
-import { author, posts } from "@/lib/posts";
+import { getAuthor } from "@/lib/authors";
+import { getAllPosts } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "Oscar Labit, Author at The Fault Foundation",
@@ -12,6 +13,8 @@ export const metadata: Metadata = {
 };
 
 export default function AuthorArchivePage() {
+  const author = getAuthor("oscar-labit");
+  const posts = getAllPosts().filter((post) => post.authorKey === "oscar-labit");
   return (
     <main id="wp--skip-link--target" className="ff-main">
       <div className="ff-container">

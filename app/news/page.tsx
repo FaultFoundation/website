@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { NewsCard } from "@/components/NewsCard";
-import { posts } from "@/lib/posts";
+import { getAllPosts } from "@/lib/content";
 
 export const metadata: Metadata = {
   title: "News",
@@ -12,6 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default function NewsPage() {
+  const posts = getAllPosts();
   return (
     <main id="wp--skip-link--target" className="ff-main">
       <div className="ff-container ff-container--wide">

@@ -11,43 +11,68 @@
  * (npx serve out -l 3999), same as screenshot-compare.mjs.
  */
 import { chromium } from "playwright";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync, readdirSync } from "node:fs";
+import { join, relative, sep } from "node:path";
 
 const BASE = "http://localhost:3999";
+const OUT = "out";
 
-const ROUTES = {
-  home: "/",
-  about: "/about/",
-  news: "/news/",
-  policies: "/policies/",
-  bylaws: "/bylaws/",
-  "disciplinary-policy": "/disciplinary-policy/",
-  "privacy-policy": "/privacy-policy/",
-  roadmap: "/roadmap/",
-  "overfault-rulebook": "/overfault-rulebook/",
-  "post-who-we-are": "/2025/11/the-fault-foundation-who-we-are-and-whats-next/",
-  "post-discord": "/2025/12/discord-and-sharing-personal-information/",
-  "post-verification": "/2026/01/community-verification/",
-  "author-oscar": "/author/admin_saivw2jq/",
-  "tag-discussion": "/tag/discussion/",
-  "tag-future": "/tag/future/",
-  "tag-news": "/tag/news/",
-  "tag-update": "/tag/update/",
-  "404": "/definitely-not-a-page/",
-};
+/**
+ * Every route in the build, discovered by globbing out/**\/index.html, so
+ * articles added after this script was written are covered automatically.
+ * The name is the route with slashes turned into dashes ("/" -> "home"),
+ * which keeps baseline filenames stable across runs.
+ */
+function discoverRoutes() {
+  const routes = {};
+  const walk = (dir) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const full = join(dir, entry.name);
+      if (entry.isDirectory()) {
+        // _next holds build assets, not routes.
+        if (entry.name !== "_next") walk(full);
+      } else if (entry.name === "index.html") {
+        const rel = relative(OUT, dir).split(sep).filter(Boolean);
+        routes[rel.length ? rel.join("-") : "home"] =
+          "/" + (rel.length ? rel.join("/") + "/" : "");
+      }
+    }
+  };
+  walk(OUT);
+  // 404 is not reachable by globbing — it is served for unknown paths.
+  routes["404"] = "/definitely-not-a-page/";
+  return Object.fromEntries(Object.entries(routes).sort());
+}
 
-// Chrome that is NOT page content, in both the old (wp-*) and new (ff-*)
-// markup. Removed before text extraction.
+// Chrome that is NOT page content, in the old (wp-*) and new (ff-*) markup.
+// Removed before text extraction.
 const CHROME_SELECTORS = [
-  "header",
-  "footer",
+  // Class-scoped, NOT bare "header"/"footer": an article uses those elements
+  // semantically, and a blanket rule would hide its <h1> from the diff — the
+  // one heading most worth verifying. Verified safe to narrow: the legacy
+  // article markup contained no <header>/<footer> at all, so this produces an
+  // identical baseline for the pre-migration build.
+  ".ff-header",
+  ".ff-footer",
   "nav",
   "givebutter-widget",
   ".skip-link", // old in-page skip link (now lives in the header)
   ".ff-skip-link",
   ".sticky-sidebar", // old policy related-docs sidebar
-  ".ff-toc", // new policy TOC (repeats existing headings)
-  ".ff-carousel", // new promo slideshow (reuses existing strings)
+  ".ff-toc", // policy + article TOC (repeats existing headings)
+  ".ff-carousel", // promo slideshow (reuses existing strings)
+  // Article-redesign chrome. These match nothing in the pre-redesign build,
+  // so adding them here does not perturb the baseline — that is the point:
+  // the same script must produce the old baseline and the new capture.
+  ".ff-article__breadcrumb",
+  ".ff-article__footer",
+  ".ff-article__meta", // date · author · reading time
+  ".ff-article__tags",
+  ".ff-article__social", // "also posted on ..." links
+  ".ff-article__prev-next",
+  ".ff-article__anchor", // heading permalink "#"
+  ".ff-article-share",
+  ".ff-article-related", // repeats other posts' titles/excerpts
 ].join(", ");
 
 const outDir = process.argv[2];
@@ -56,6 +81,9 @@ if (!outDir) {
   process.exit(1);
 }
 mkdirSync(outDir, { recursive: true });
+
+const ROUTES = discoverRoutes();
+console.log(`${Object.keys(ROUTES).length} routes discovered in ${OUT}/`);
 
 const browser = await chromium.launch();
 const page = await browser.newPage();

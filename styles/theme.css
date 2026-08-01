@@ -1,12 +1,44 @@
 /* ============================================================
    fault.foundation — "ff" redesign theme
-   Layered ON TOP of the ported WordPress CSS (wp-globals.css /
-   wp-blocks.css), which must stay untouched: the article pages
-   still render verbatim WP markup. Every selector here is
-   namespaced with `ff-`; redesigned pages use only ff- classes.
-   Brand tokens alias the existing --wp--preset--* values so the
-   old and new surfaces stay consistent.
+   Layered ON TOP of the ported WordPress global CSS
+   (wp-globals.css), which must stay untouched. Every selector
+   here is namespaced with `ff-` (see section 0 for the two
+   exceptions); redesigned pages use only ff- classes. Brand
+   tokens alias the existing --wp--preset--* values so the old
+   and new surfaces stay consistent.
+
+   styles/wp-blocks.css was deleted once the article pages moved
+   to MDX — it was 84.8 KB serving three pages. Section 0 below
+   readopts the only rules in it that were doing real work
+   site-wide.
    ============================================================ */
+
+/* ---------- 0. Salvaged from the deleted wp-blocks.css ----------
+   These are bare-element rules, so they are the only non-ff-
+   prefixed selectors in this file. Verified by screenshot diff:
+   dropping `text-wrap: pretty` re-wrapped body copy on the home,
+   bylaws, roadmap and policy pages.
+
+   NOT readopted: `a { text-decoration-thickness: 1px !important }`.
+   That !important was overriding the article link underlines, and
+   losing it is the intended change, not a regression. */
+
+blockquote,
+caption,
+figcaption,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  text-wrap: pretty;
+}
+ul,
+ol {
+  box-sizing: border-box;
+}
 
 /* ---------- 1. Tokens ---------- */
 :root {
@@ -42,6 +74,13 @@
   --ff-header-offset: 10px; /* floating header gap from the viewport edge */
   --ff-container: 1250px; /* = --wp--style--global--content-size */
   --ff-wide: 1500px; /* = --wp--style--global--wide-size */
+
+  /* Long-form reading measure. Body copy runs at --font-size--large
+     (18-22px), so ~70 characters lands near 46rem. --ff-container is right
+     for card grids and far too wide for prose. */
+  --ff-measure: 46rem;
+  --ff-measure-wide: 62rem; /* figures/galleries break out to here */
+  --ff-rule: rgba(255, 255, 255, 0.14);
   --ff-space-section: var(--wp--preset--spacing--70);
   --ff-gutter: clamp(16px, 4vw, 32px);
   --ff-transition: 180ms ease;
@@ -77,6 +116,18 @@ html.ff-no-scroll givebutter-widget {
 .ff-footer :focus-visible {
   outline: 2px solid var(--ff-accent);
   outline-offset: 2px;
+}
+
+/* Screen-reader-only: announced, but takes no layout space. */
+.ff-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 /* Skip link: visually hidden until focused. */
@@ -1008,6 +1059,651 @@ button.ff-nav__link:hover {
 .ff-policy-hub ul a:hover {
   background: rgba(255, 255, 255, 0.09);
   color: #fff;
+}
+
+/* ---------- 16. Article (news detail) ----------
+   Must come after section 11: .ff-prose--article overrides .ff-prose rules of
+   equal specificity, so source order is what decides. */
+
+.ff-article__header {
+  margin-block: var(--wp--preset--spacing--60) var(--wp--preset--spacing--40);
+  text-align: center;
+}
+.ff-article__breadcrumb {
+  display: inline-block;
+  margin: 0 0 18px;
+  color: var(--ff-text-dim);
+  font-size: var(--wp--preset--font-size--small);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+.ff-article__breadcrumb:hover {
+  color: var(--ff-accent);
+}
+.ff-article__title {
+  max-width: var(--ff-measure-wide);
+  margin: 0 auto;
+  font-size: var(--wp--preset--font-size--xx-large);
+  text-wrap: balance;
+}
+.ff-article__meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 6px 10px;
+  margin: 18px 0 0;
+  color: var(--ff-text-dim);
+  font-size: var(--wp--preset--font-size--small);
+  font-weight: 600;
+}
+.ff-article__meta a {
+  color: inherit;
+}
+.ff-article__meta a:hover {
+  color: var(--ff-accent);
+}
+/* Dot separators, drawn rather than typed so they never reach the clipboard. */
+.ff-article__meta > * + *::before {
+  content: "";
+  display: inline-block;
+  width: 3px;
+  height: 3px;
+  margin-right: 10px;
+  border-radius: 50%;
+  background: currentColor;
+  vertical-align: middle;
+}
+.ff-article__tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+/* Share + organization accounts: one centered row of icon-sized controls.
+   Dimmed so they read as a quiet footnote to the header rather than competing
+   with the tags above them. */
+.ff-article__actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  margin-top: 20px;
+}
+.ff-article__socials {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+/* Hairline between the share action and the account links. Drawn on the
+   accounts, so it disappears with them if lib/socials.ts is empty. */
+.ff-article__actions > .ff-article__socials {
+  padding-left: 14px;
+  border-left: 1px solid var(--ff-rule);
+}
+.ff-article__socials a,
+.ff-article-share__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--ff-text-dim);
+  opacity: 0.5;
+  transition:
+    opacity var(--ff-transition),
+    color var(--ff-transition),
+    background var(--ff-transition);
+}
+.ff-article__socials a:hover,
+.ff-article__socials a:focus-visible,
+.ff-article-share__button:hover,
+.ff-article-share__button:focus-visible {
+  background: rgba(255, 255, 255, 0.09);
+  color: #fff;
+  opacity: 1;
+}
+.ff-article-share__button {
+  cursor: pointer;
+}
+
+/* Hero figure */
+.ff-article__hero {
+  margin: 0 0 var(--wp--preset--spacing--60);
+}
+.ff-article__hero img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--ff-radius-xl);
+  box-shadow: var(--ff-shadow-float);
+  object-fit: cover;
+  aspect-ratio: 16 / 9;
+}
+/* Portrait sources (e.g. 4:5 social carousel art) would be gutted by a 16:9
+   crop, so show them whole and cap the height instead. */
+.ff-article__hero--portrait img {
+  width: auto;
+  max-width: 100%;
+  max-height: 70svh;
+  margin-inline: auto;
+  aspect-ratio: auto;
+}
+.ff-article__hero-caption {
+  margin: 12px 0 0;
+  color: var(--ff-text-dim);
+  font-size: var(--wp--preset--font-size--small);
+  text-align: center;
+}
+
+/* Optional sticky TOC beside the reading column */
+.ff-article__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: clamp(24px, 4vw, 56px);
+  align-items: start;
+}
+@media (min-width: 1200px) {
+  .ff-article__layout--toc {
+    grid-template-columns: minmax(0, 1fr) 260px;
+  }
+  /* TOC sits to the RIGHT of the prose but before it in the DOM would break
+     reading order, so it is placed second in markup and pinned by column. */
+  .ff-article-toc {
+    grid-column: 2;
+    grid-row: 1;
+  }
+}
+.ff-article-toc {
+  padding: 20px;
+}
+.ff-article-toc__heading {
+  margin: 0 0 8px;
+  color: var(--ff-text-dim);
+  font-size: var(--wp--preset--font-size--small);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.ff-article-toc li[data-depth="3"] a {
+  padding-left: 22px;
+  font-weight: 500;
+}
+
+/*
+ * Breakout grid. MDX renders mapped elements as DIRECT children of this
+ * element, so named grid columns let a figure or gallery escape the reading
+ * measure with no wrapper markup at all.
+ *
+ * Inside a narrower parent (the TOC layout) the minmax(0, …) tracks collapse
+ * to zero and `wide` degrades gracefully to `text`.
+ */
+.ff-article__body {
+  display: grid;
+  grid-template-columns:
+    [full-start] minmax(var(--ff-gutter), 1fr)
+    [wide-start] minmax(0, calc((var(--ff-measure-wide) - var(--ff-measure)) / 2))
+    [text-start] min(100% - var(--ff-gutter) * 2, var(--ff-measure)) [text-end]
+    minmax(0, calc((var(--ff-measure-wide) - var(--ff-measure)) / 2)) [wide-end]
+    minmax(var(--ff-gutter), 1fr) [full-end];
+}
+.ff-article__body > * {
+  grid-column: text;
+}
+.ff-article__body > figure,
+.ff-article__body > .ff-article-gallery,
+.ff-article__body > .ff-article-embed,
+.ff-article__body > .ff-table-wrap {
+  grid-column: wide;
+}
+.ff-article__body > .ff-article-full {
+  grid-column: full;
+}
+
+/* Standalone blocks need their own breathing room.
+   Each of these zeroes its margin below (to kill the UA <figure> indent), and
+   those single-class rules would otherwise tie with .ff-prose--article's flow
+   spacing and win on source order — leaving a gallery jammed against the
+   paragraph above it. Two classes here beats one there. */
+.ff-article__body > figure,
+.ff-article__body > .ff-article-gallery,
+.ff-article__body > .ff-article-embed,
+.ff-article__body > .ff-article-quote,
+.ff-article__body > .ff-article-callout,
+.ff-article__body > .ff-table-wrap {
+  margin-block: 2.2em;
+}
+
+/* Long-form typography: the site's 1.4 line-height at weight 300 is too tight
+   to read 1500 words of navy-on-white. */
+.ff-prose--article {
+  line-height: 1.6;
+}
+.ff-prose--article > * + * {
+  margin-block-start: 1.15em;
+}
+.ff-prose--article h2 {
+  margin-block-start: 2.2em;
+  font-size: var(--wp--preset--font-size--x-large);
+  text-wrap: balance;
+}
+.ff-prose--article h3 {
+  margin-block-start: 1.8em;
+  font-size: var(--wp--preset--font-size--large);
+  text-wrap: balance;
+}
+.ff-prose--article :is(h2, h3) + * {
+  margin-block-start: 0.6em;
+}
+.ff-prose--article a {
+  text-decoration: underline;
+  text-decoration-color: var(--ff-accent);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 0.18em;
+}
+.ff-prose--article li + li {
+  margin-block-start: 0.5em;
+}
+.ff-prose--article hr {
+  width: 96px;
+  margin: 2.4em auto;
+  border: 0;
+  border-top: 2px solid var(--ff-rule);
+}
+.ff-prose--article :is(code, kbd) {
+  padding: 0.15em 0.4em;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.09);
+  font-size: 0.9em;
+}
+.ff-prose--article pre {
+  overflow-x: auto;
+  padding: 18px 20px;
+  border: 1px solid var(--ff-border);
+  border-radius: var(--ff-radius-md);
+  background: rgba(0, 0, 0, 0.28);
+  font-size: var(--wp--preset--font-size--small);
+  line-height: 1.5;
+}
+.ff-prose--article pre code {
+  padding: 0;
+  background: none;
+}
+
+/* Heading permalink appended by rehype-autolink-headings */
+.ff-article__anchor {
+  margin-left: 0.4em;
+  color: var(--ff-accent);
+  font-weight: 400;
+  opacity: 0;
+  text-decoration: none;
+  transition: opacity var(--ff-transition);
+}
+.ff-article__anchor::after {
+  content: "#";
+}
+:is(h2, h3):hover > .ff-article__anchor,
+.ff-article__anchor:focus-visible {
+  opacity: 1;
+}
+
+/* Figures */
+.ff-article-figure {
+  margin: 0;
+}
+.ff-article-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--ff-radius-lg);
+}
+.ff-article-figure figcaption,
+.ff-article-gallery__caption {
+  margin-top: 12px;
+  color: var(--ff-text-dim);
+  font-size: var(--wp--preset--font-size--small);
+  text-align: center;
+}
+
+/* Pull quote. Deliberately not the WP left-bar look — wp-blocks.css is gone. */
+.ff-article-quote {
+  margin: 0;
+  padding-block: 1.4em;
+  border-block: 1px solid var(--ff-rule);
+  text-align: center;
+}
+.ff-article-quote p {
+  margin: 0;
+  font-size: var(--wp--preset--font-size--x-large);
+  font-style: italic;
+  font-weight: 300;
+  line-height: 1.35;
+  text-wrap: balance;
+}
+.ff-article-quote p::before {
+  content: "\201C";
+  margin-right: 0.05em;
+  color: var(--ff-accent);
+}
+.ff-article-quote p::after {
+  content: "\201D";
+  margin-left: 0.05em;
+  color: var(--ff-accent);
+}
+.ff-article-quote__cite {
+  display: block;
+  margin-top: 14px;
+  color: var(--ff-text-dim);
+  font-size: var(--wp--preset--font-size--small);
+  font-style: normal;
+  font-weight: 600;
+}
+
+/* Blockquotes in body copy (the migrated posts use these) */
+.ff-prose--article blockquote {
+  margin: 0;
+  padding: 4px 0 4px 24px;
+  border-left: 3px solid var(--ff-accent);
+  color: #eaf2fb;
+}
+.ff-prose--article blockquote > * + * {
+  margin-block-start: 0.9em;
+}
+
+/* Callout */
+.ff-article-callout {
+  padding: 20px 24px;
+  border: 1px solid var(--ff-border);
+  border-left: 3px solid var(--ff-accent);
+  border-radius: var(--ff-radius-lg);
+  background: var(--ff-surface-2);
+}
+.ff-article-callout > * {
+  margin-block: 0;
+}
+.ff-article-callout > * + * {
+  margin-block-start: 0.7em;
+}
+.ff-article-callout__label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--ff-accent);
+  font-size: var(--wp--preset--font-size--small);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.ff-article-callout--warn {
+  border-left-color: #ffb44a;
+}
+.ff-article-callout--warn .ff-article-callout__label {
+  color: #ffb44a;
+}
+
+/* YouTube facade: nothing is requested from Google until the user clicks. */
+.ff-article-embed {
+  margin: 0;
+}
+.ff-article-embed__frame {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--ff-radius-lg);
+  background: var(--ff-navy-900);
+  box-shadow: var(--ff-shadow-card);
+}
+.ff-article-embed__frame > iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+.ff-article-embed__facade {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+.ff-article-embed__facade img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ff-article-embed__play {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 24, 50, 0.35);
+  transition: background var(--ff-transition);
+}
+.ff-article-embed__facade:hover .ff-article-embed__play {
+  background: rgba(0, 24, 50, 0.15);
+}
+.ff-article-embed__play span {
+  display: grid;
+  place-items: center;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  background: var(--ff-accent);
+  color: var(--ff-navy-900);
+  box-shadow: var(--ff-shadow-card);
+}
+.ff-article-embed__note {
+  margin-top: 10px;
+  color: var(--ff-text-dim);
+  font-size: var(--wp--preset--font-size--small);
+  text-align: center;
+}
+
+/* Gallery (embla) — the shape of .ff-carousel without the autoplay/overlay. */
+.ff-article-gallery {
+  position: relative;
+  margin: 0;
+}
+.ff-article-gallery__viewport {
+  overflow: hidden;
+  border-radius: var(--ff-radius-lg);
+  box-shadow: var(--ff-shadow-card);
+}
+.ff-article-gallery__slides {
+  display: flex;
+  touch-action: pan-y pinch-zoom;
+}
+.ff-article-gallery__slide {
+  position: relative;
+  flex: 0 0 100%;
+  min-width: 0;
+}
+.ff-article-gallery__slide img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 78svh;
+  margin-inline: auto;
+  object-fit: contain;
+}
+.ff-article-gallery__arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--ff-border);
+  border-radius: 50%;
+  background: rgba(0, 24, 50, 0.72);
+  color: #fff;
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition:
+    background var(--ff-transition),
+    color var(--ff-transition);
+}
+.ff-article-gallery__arrow:hover:not(:disabled) {
+  background: var(--ff-accent);
+  color: var(--ff-navy-900);
+}
+.ff-article-gallery__arrow:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+.ff-article-gallery__arrow--prev {
+  left: 12px;
+}
+.ff-article-gallery__arrow--next {
+  right: 12px;
+}
+.ff-article-gallery__counter {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 2;
+  padding: 4px 10px;
+  border-radius: var(--ff-radius-pill);
+  background: rgba(0, 24, 50, 0.72);
+  font-size: var(--wp--preset--font-size--small);
+  font-weight: 700;
+}
+.ff-article-gallery__dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 14px;
+}
+.ff-article-gallery__dot {
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--ff-radius-pill);
+  background: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  transition:
+    background var(--ff-transition),
+    width var(--ff-transition);
+}
+.ff-article-gallery__dot.is-active {
+  width: 26px;
+  background: var(--ff-accent);
+}
+
+/* Footnotes emitted by remark-gfm */
+.ff-article__body .footnotes {
+  margin-block-start: 2.6em;
+  padding-block-start: 1.2em;
+  border-top: 1px solid var(--ff-rule);
+  color: var(--ff-text-dim);
+  font-size: var(--wp--preset--font-size--medium);
+}
+.ff-article__body .footnotes h2 {
+  margin-block-start: 0;
+  font-size: var(--wp--preset--font-size--small);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.ff-article__body .footnotes ol {
+  padding-inline-start: 1.2em;
+}
+
+/* Footer: social links, share row, prev/next */
+.ff-article__footer {
+  margin-block-start: var(--wp--preset--spacing--60);
+}
+.ff-article__footer-inner {
+  max-width: var(--ff-measure-wide);
+  margin-inline: auto;
+  padding-block-start: var(--wp--preset--spacing--40);
+  border-top: 1px solid var(--ff-rule);
+}
+.ff-article-share {
+  display: inline-flex;
+  align-items: center;
+}
+
+.ff-article__prev-next {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  gap: 16px;
+}
+.ff-article__prev-next-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border: 1px solid var(--ff-border);
+  border-radius: var(--ff-radius-lg);
+  background: var(--ff-surface-2);
+  text-decoration: none;
+  transition:
+    transform var(--ff-transition),
+    box-shadow var(--ff-transition);
+}
+.ff-article__prev-next-link:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--ff-shadow-card);
+}
+.ff-article__prev-next-link:hover .ff-article__prev-next-title {
+  color: var(--ff-accent);
+}
+.ff-article__prev-next-thumb {
+  flex: 0 0 auto;
+  overflow: hidden;
+  width: 96px;
+  height: 72px;
+  border-radius: var(--ff-radius-md);
+  background: var(--ff-navy-900);
+}
+.ff-article__prev-next-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.ff-article__prev-next-body {
+  min-width: 0;
+}
+.ff-article__prev-next-dir {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--ff-text-dim);
+  font-size: var(--wp--preset--font-size--small);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.ff-article__prev-next-title {
+  display: block;
+  font-size: var(--wp--preset--font-size--medium);
+  font-weight: 700;
+  line-height: 1.3;
+  transition: color var(--ff-transition);
+}
+/* "Next" mirrors: text right-aligned, thumbnail trailing. */
+.ff-article__prev-next--next {
+  text-align: right;
+}
+
+/* Related content */
+.ff-article-related {
+  margin-block: var(--wp--preset--spacing--70);
 }
 
 /* ---------- 13. Footer (full-bleed bar matching the header) ---------- */
