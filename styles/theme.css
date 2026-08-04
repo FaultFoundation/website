@@ -158,6 +158,16 @@ html.ff-no-scroll givebutter-widget {
 .ff-container--wide {
   max-width: var(--ff-wide);
 }
+/* Aligns with the floating header's BOX edges rather than sitting a gutter
+   inside them: same width formula, same cap, no inner padding. Use it when
+   content should line up with the top menu bar — the policy documents do, to
+   win back the horizontal space their sidebar costs them. */
+.ff-container--flush {
+  width: calc(100% - 2 * var(--ff-gutter));
+  max-width: var(--ff-wide);
+  margin-inline: auto;
+  padding-inline: 0;
+}
 .ff-section {
   margin-block: var(--ff-space-section);
 }

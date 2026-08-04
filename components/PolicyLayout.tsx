@@ -26,7 +26,7 @@ export function PolicyLayout({
   return (
     <main id="wp--skip-link--target" className="ff-main">
       <HashTarget />
-      <div className="ff-container ff-container--wide">
+      <div className="ff-container ff-container--flush">
         <section
           className="ff-hero ff-hero--compact"
           style={{
@@ -40,7 +40,7 @@ export function PolicyLayout({
         </section>
       </div>
 
-      <div className="ff-container ff-policy ff-section--tight">
+      <div className="ff-container ff-container--flush ff-policy ff-section--tight">
         <aside className="ff-card ff-toc" aria-label="Table of contents">
           <p className="ff-toc__heading">{doc.title}</p>
           <ul>

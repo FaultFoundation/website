@@ -182,6 +182,20 @@ export function getPostsByTag(tag: TagSlug): LoadedPost[] {
 }
 
 /**
+ * Raw MDX body for an article, frontmatter stripped.
+ *
+ * Exists for app/feed.xml/route.ts, which needs the article source rather than
+ * the rendered React tree. It re-reads the file instead of caching the body on
+ * LoadedPost so that every other consumer — all of which only want metadata —
+ * does not carry article text around in memory.
+ */
+export function getPostBody(contentId: string): string {
+  const [year, month, slug] = contentId.split("/");
+  const file = join(NEWS_DIR, year, month, slug, "index.mdx");
+  return matter(readFileSync(file, "utf8")).content;
+}
+
+/**
  * All tags, including ones with no visible posts — a tag page must not start
  * 404ing because its only article is currently a draft.
  */

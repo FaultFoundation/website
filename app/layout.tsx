@@ -15,6 +15,13 @@ export const metadata: Metadata = {
     // Matches the live Yoast title format: "<Page> - The Fault Foundation"
     template: "%s - The Fault Foundation",
   },
+  // Feed autodiscovery — emits <link rel="alternate" type="application/rss+xml">
+  // so readers (and the Discord bot's configured URL) resolve from the origin.
+  alternates: {
+    types: {
+      "application/rss+xml": [{ url: "/feed.xml", title: "Fault Foundation" }],
+    },
+  },
   // Same icon files/sizes the live WP site serves
   icons: {
     icon: [
