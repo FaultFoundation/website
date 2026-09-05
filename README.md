@@ -2,6 +2,12 @@
 
 Static build of [The Fault Foundation](https://fault.foundation) as a Next.js + TypeScript site. Redesigned most pages with a modern look.
 
+## Brand
+
+[`BRAND.md`](BRAND.md) is the transcribed brand book — palette, typography and
+logo lockups, with the exact tokens each maps to. Read it before changing
+colours or type.
+
 ## Licensing / provenance
 
 No license has been chosen for this repository yet. Note regardless:
@@ -10,7 +16,8 @@ No license has been chosen for this repository yet. Note regardless:
   Twenty-Five theme, which are **GPL-2.0+**; that file remains under the GPL
   whatever license the rest of the repo adopts. The same applies to the two
   rules readopted into `styles/theme.css` section 0.
-- `public/fonts/manrope/` is the Manrope typeface, redistributed under the
+- `public/fonts/montserrat/` and `public/fonts/fira-code/` are the Montserrat
+  and Fira Code typefaces, redistributed under the
   [SIL Open Font License 1.1](https://openfontlicense.org/).
 - Site content (text, logo, photographs) is © The Fault Foundation Inc. and
   is not implicitly licensed by this repository being public.

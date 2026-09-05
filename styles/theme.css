@@ -41,18 +41,85 @@ ol {
 }
 
 /* ---------- 1. Tokens ---------- */
+
+/* Brand-book corrections to the ported WordPress palette.
+   wp-globals.css is verbatim WordPress output and stays untouched, but three
+   of its presets are a hair off the brand book — base and custom-blue-main
+   ship #003167 against the book's #003168, and accent-1 ships #FFEE58 against
+   #FFED57. Restating just those three here fixes every consumer at once: the
+   `has-*-color` classes in ported markup, the ff- aliases below, and anything
+   added later that reaches for a preset.
+
+   Deliberately NOT remapped: accent-2 (#F6CFF4) and accent-3 (#503AA8) are
+   Twenty Twenty-Five defaults with no brand equivalent. Neither appears in
+   markup; leaving them wrong means a stray `has-accent-3-color` looks broken
+   instead of quietly passing as brand. */
 :root {
-  /* surfaces */
-  --ff-bg: var(--wp--preset--color--custom-blue-main); /* #003167 */
-  --ff-blue: var(--wp--preset--color--custom-blue-side); /* #0074a6 */
-  --ff-navy-900: #001d3d;
-  --ff-surface-1: #06407e;
+  --wp--preset--color--base: #003168;
+  --wp--preset--color--custom-blue-main: #003168;
+  --wp--preset--color--accent-1: #ffed57;
+}
+
+:root {
+  /* ---- Brand palette — Brand Book p.07, verbatim ----
+     The core monochrome scheme is a four-step ramp, darkest first. Every
+     surface on the site is one of these four or white; nothing interpolates
+     between them except --ff-grad-brand. */
+  --ff-navy-900: #001a36;
+  --ff-navy-800: #003168;
+  --ff-blue-600: #005084;
+  --ff-blue-500: #0074a6;
+
+  /* Highlights. --ff-gray is the book's neutral; it is a *content* grey
+     (rules, disabled states), not a text colour on navy — it fails contrast
+     against every surface above. Use the text ramp for type. */
+  --ff-white: #ffffff;
+  --ff-yellow: #ffed57;
+  --ff-black: #000000;
+  --ff-gray: #586468;
+
+  /* ---- Semantic aliases ----
+     Everything below this line is what components actually reference, so a
+     palette change lands in one place. */
+  --ff-bg: var(--ff-navy-800);
+  --ff-blue: var(--ff-blue-500);
+  --ff-accent: var(--ff-yellow);
+  --ff-surface-1: var(--ff-blue-600);
   --ff-surface-2: rgba(255, 255, 255, 0.06);
   --ff-border: rgba(255, 255, 255, 0.1);
-  --ff-grad-brand: linear-gradient(90deg, rgb(0, 49, 103) 0%, rgb(0, 116, 166) 100%);
-  --ff-grad-brand-rev: linear-gradient(90deg, rgb(0, 116, 166) 0%, rgb(0, 49, 103) 100%);
-  --ff-accent: var(--wp--preset--color--accent-1); /* #FFEE58 */
+  --ff-grad-brand: linear-gradient(90deg, var(--ff-navy-800) 0%, var(--ff-blue-500) 100%);
+  --ff-grad-brand-rev: linear-gradient(90deg, var(--ff-blue-500) 0%, var(--ff-navy-800) 100%);
+
+  /* Text ramp. The brand book specifies no tints, so these are the two steps
+     the design needs between #FFFFFF and unreadable: --ff-text-soft for
+     subtitles and lead-ins, --ff-text-dim for metadata and captions. Both are
+     white desaturated toward the navy ground rather than toward --ff-gray,
+     which would read as dirty against #003168. */
+  --ff-text: var(--ff-white);
+  --ff-text-soft: #e4edf9;
   --ff-text-dim: #b8c7d9;
+
+  /* Semantic, deliberately outside the brand palette: a warning has to be
+     distinguishable from --ff-accent, and the book's only warm colour IS
+     --ff-accent. Used solely by .ff-article-callout--warn. */
+  --ff-warn: var(--ff-warn);
+
+  /* ---- Typography — Brand Book p.08 ----
+     Montserrat is the working typeface: Bold/all-caps for H1, SemiBold/all-caps
+     for H2, Regular for subheaders, Light for body. Fira Code is the brand
+     font — used in small, deliberate runs (eyebrows, metadata, code), never
+     for reading copy. Section 2b wires these to elements. */
+  --ff-font-body: Montserrat, ui-sans-serif, system-ui, sans-serif;
+  --ff-font-brand: "Fira Code", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --ff-weight-body: 300; /* Body Text — Montserrat Light */
+  --ff-weight-subhead: 400; /* Subheader — Montserrat Regular */
+  --ff-weight-h2: 600; /* Header 2 — Montserrat SemiBold */
+  --ff-weight-h1: 700; /* Header 1 — Montserrat Bold */
+
+  /* All-caps headers need the counter-tracking Montserrat's tight default
+     spacing doesn't give them. */
+  --ff-tracking-caps: 0.045em;
 
   /* radii — 20px is the site's established motif */
   --ff-radius-md: 12px;
@@ -146,6 +213,83 @@ html.ff-no-scroll givebutter-widget {
 }
 .ff-skip-link:focus-visible {
   transform: none;
+}
+
+/* ---------- 2b. Brand typography (Brand Book p.08) ----------
+   Bare-element rules, like section 0, and for the same reason: they have to
+   beat wp-globals.css's own element rules — `body` there still names the
+   retired Manrope stack, and `h1,h2,h3,h4,h5,h6` puts every heading at 800.
+   theme.css loads after it, so matching specificity is enough; no !important.
+
+   Two deliberate departures from a literal reading of the book, both because
+   the book describes a deck-and-poster system and this site also carries
+   long-form prose:
+
+   1. ALL CAPS is applied by class, not to h1/h2 globally. Article and policy
+      headings are sentences ("Discord and Sharing Personal Information");
+      uppercasing them costs reading speed and throws away the proper-noun
+      casing the copy depends on. Page furniture — hero titles, carousel and
+      footer headers — takes the caps; prose keeps sentence case at the
+      book's weights. To go all-caps everywhere, move the .ff-*__title rule
+      below onto `h1, h2`.
+
+   2. The book's "Subheader / Montserrat Regular" is the display line under a
+      header, not an <h3>. h3 renders at --font-size--large, the same size as
+      body copy, so setting it Regular against Light body would leave no
+      hierarchy at all. Heading elements below h2 stay SemiBold; Regular goes
+      to the deck lines that actually sit under a title. */
+
+body {
+  font-family: var(--ff-font-body);
+  font-weight: var(--ff-weight-body);
+}
+
+h1 {
+  font-weight: var(--ff-weight-h1);
+}
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: var(--ff-weight-h2);
+}
+
+/* Header 1 / Header 2, set as the book draws them. */
+.ff-hero__title,
+.ff-carousel__title,
+.ff-footer__title {
+  text-transform: uppercase;
+  letter-spacing: var(--ff-tracking-caps);
+}
+
+/* Subheader — the deck under a title. */
+.ff-hero__subtitle {
+  font-weight: var(--ff-weight-subhead);
+}
+
+/* The wordmark — "The Fault Foundation" as it appears in the header and
+   footer — is a logo lockup, not a header: Bold, and title case as it is
+   drawn in the brand book, everywhere it appears. Neither element is an
+   h1/h2 (both are <p>, so each page still supplies its own h1), so the
+   weight has to be set explicitly rather than inherited. */
+.ff-header__title,
+.ff-footer__title {
+  font-weight: var(--ff-weight-h1);
+}
+
+/* Fira Code — the brand font. Reserved for the small uppercase labels and for
+   code. Never reading copy: it is a monospace, so a paragraph set in it runs
+   far wider and loses the word shapes that make Montserrat scannable. */
+.ff-toc__heading,
+.ff-article-toc__heading,
+.ff-article__breadcrumb,
+.ff-article__prev-next-dir,
+.ff-article-callout__label,
+.ff-footer__group-title,
+.ff-prose--article :is(code, kbd),
+.ff-prose--article pre {
+  font-family: var(--ff-font-brand);
 }
 
 /* ---------- 3. Layout primitives ---------- */
@@ -273,7 +417,7 @@ html.ff-no-scroll givebutter-widget {
   inset: 0;
   z-index: -1;
   border-radius: inherit;
-  background: rgba(0, 24, 50, 0.92);
+  background: rgba(0, 26, 54, 0.92);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
 }
@@ -301,7 +445,9 @@ html.ff-no-scroll givebutter-widget {
   margin: 0;
   color: #fff;
   font-size: 1.15rem;
-  font-weight: 800;
+  /* Weight set in §2b (.ff-header__title), not here — it used to be
+     hardcoded 800 in this rule, which silently beat §2b's Bold (700) on
+     cascade order despite reading like the two agreed. */
   letter-spacing: -0.2px;
   white-space: nowrap;
 }
@@ -435,13 +581,19 @@ button.ff-nav__link:hover {
   background: rgba(255, 255, 255, 0.09);
 }
 
-/* Mobile: the nav container becomes a full-screen overlay. */
-@media (min-width: 782px) {
+/* Compact: the nav container becomes a full-screen overlay.
+
+   The switch is at 1100px, not the 782px the rest of the layout uses. The bar
+   carries two dropdowns (About, Partners) plus a two-pill run — Join Discord,
+   Commons — and below ~1100px they collide with the wordmark. This breakpoint
+   and the overlay's own must stay equal, or the hamburger shows at a width
+   where the overlay it opens is still hidden. */
+@media (min-width: 1100px) {
   .ff-nav__container {
     display: contents;
   }
 }
-@media (max-width: 781.98px) {
+@media (max-width: 1099.98px) {
   .ff-nav__open {
     display: inline-flex;
     margin-left: auto;
@@ -460,7 +612,7 @@ button.ff-nav__link:hover {
     z-index: 100;
     padding: var(--ff-gutter);
     overflow-y: auto;
-    background: linear-gradient(180deg, #001d3d 0%, #003167 100%);
+    background: linear-gradient(180deg, var(--ff-navy-900) 0%, var(--ff-navy-800) 100%);
   }
   .ff-nav__container.is-open .ff-nav__close {
     display: inline-flex;
@@ -507,6 +659,135 @@ button.ff-nav__link:hover {
   }
 }
 
+/* ---------- 6b. Header account controls ----------
+   Ported from the Commons (that repo's styles/theme.css) so the two headers
+   are visually identical; see components/auth/HeaderAuthButton.tsx. */
+
+/* Commons pill: yellow outline, filling on hover. Sits last in the pill run,
+   right before the avatar slot — the rightmost position "Sign In" used to
+   hold — so it's the last thing a logged-out visitor sees before the header
+   ends. */
+.ff-btn--brand {
+  background: transparent;
+  color: var(--ff-accent);
+  box-shadow: inset 0 0 0 1.5px var(--ff-accent);
+}
+.ff-btn--brand:hover {
+  background: var(--ff-accent);
+  color: var(--ff-navy-900);
+  box-shadow: inset 0 0 0 1.5px var(--ff-accent);
+}
+
+/* Header avatar — the only auth control; shown only when a session exists. */
+.ff-nav__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: var(--ff-radius-pill);
+  background: rgba(255, 255, 255, 0.16);
+  color: var(--ff-text-dim);
+  cursor: pointer;
+  transition:
+    background var(--ff-transition),
+    color var(--ff-transition);
+}
+.ff-nav__avatar:hover {
+  background: var(--ff-accent);
+  color: var(--ff-navy-900);
+}
+.ff-nav__avatar svg {
+  width: 22px;
+  height: 22px;
+}
+.ff-nav__avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
+/* Account dropdown hanging off the avatar. Mirrors the About dropdown's panel
+   styling; toggled open via .is-open (HeaderAuthButton). */
+.ff-usermenu {
+  position: relative;
+  display: inline-flex;
+}
+.ff-usermenu__menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 60;
+  min-width: 200px;
+  padding: 6px;
+  border-radius: var(--ff-radius-md);
+  background: var(--ff-navy-900);
+  border: 1px solid var(--ff-border);
+  box-shadow: var(--ff-shadow-card);
+}
+.ff-usermenu.is-open .ff-usermenu__menu {
+  display: block;
+}
+.ff-usermenu__item {
+  display: block;
+  width: 100%;
+  padding: 9px 12px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.ff-usermenu__item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+.ff-usermenu__item--danger {
+  color: #ff8a8a;
+}
+.ff-usermenu__item:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* There is no signed-out header control — a logged-out visitor has nothing
+   to hide, only an avatar to withhold until a session is confirmed. Whether
+   .ff-auth-when-in (MainNav.tsx's <li>) shows at all is decided pre-paint by
+   the data-auth attribute (inline script in app/layout.tsx + lib/auth-hint.ts),
+   so there's no empty-slot flash while the cross-origin session check
+   round-trips to the Commons. */
+html:not([data-auth="in"]) .ff-auth-when-in {
+  display: none;
+}
+
+@media (max-width: 1099.98px) {
+  /* In the full-screen overlay the account menu stacks inline, like the
+     About submenu, instead of floating off the avatar. */
+  .ff-usermenu__menu {
+    position: static;
+    min-width: 0;
+    margin: 6px 0 0 12px;
+    padding: 0 0 0 16px;
+    border: 0;
+    border-left: 2px solid var(--ff-border);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  .ff-usermenu__item {
+    font-size: var(--wp--preset--font-size--large);
+  }
+  .ff-nav__cta {
+    margin: 12px 0 0;
+  }
+}
+
 /* ---------- 7. Hero bands ---------- */
 
 .ff-hero {
@@ -539,7 +820,7 @@ button.ff-nav__link:hover {
   font-size: var(--wp--preset--font-size--x-large);
   font-weight: 300;
   font-style: italic;
-  color: #eaf2fb;
+  color: var(--ff-text-soft);
 }
 
 /* ---------- 8. Carousel (embla) ---------- */
@@ -595,7 +876,7 @@ button.ff-nav__link:hover {
   margin: 0;
   font-size: var(--wp--preset--font-size--large);
   font-style: italic;
-  color: #eaf2fb;
+  color: var(--ff-text-soft);
 }
 @media (max-width: 781.98px) {
   .ff-carousel__media {
@@ -779,7 +1060,7 @@ button.ff-nav__link:hover {
 }
 .ff-news-card__excerpt {
   margin: 0;
-  color: #dfe9f4;
+  color: var(--ff-text-soft);
   font-size: var(--wp--preset--font-size--medium);
 }
 .ff-news-card__tags {
@@ -955,7 +1236,7 @@ button.ff-nav__link:hover {
   display: block;
   padding: 6px 10px;
   border-radius: 8px;
-  color: #dfe9f4;
+  color: var(--ff-text-soft);
   font-size: 0.92rem;
   font-weight: 600;
   text-decoration: none;
@@ -1060,7 +1341,7 @@ button.ff-nav__link:hover {
   display: block;
   padding: 5px 10px;
   border-radius: 8px;
-  color: #dfe9f4;
+  color: var(--ff-text-soft);
   font-size: 0.92rem;
   font-weight: 600;
   text-decoration: none;
@@ -1422,7 +1703,7 @@ button.ff-nav__link:hover {
   margin: 0;
   padding: 4px 0 4px 24px;
   border-left: 3px solid var(--ff-accent);
-  color: #eaf2fb;
+  color: var(--ff-text-soft);
 }
 .ff-prose--article blockquote > * + * {
   margin-block-start: 0.9em;
@@ -1452,10 +1733,10 @@ button.ff-nav__link:hover {
   text-transform: uppercase;
 }
 .ff-article-callout--warn {
-  border-left-color: #ffb44a;
+  border-left-color: var(--ff-warn);
 }
 .ff-article-callout--warn .ff-article-callout__label {
-  color: #ffb44a;
+  color: var(--ff-warn);
 }
 
 /* YouTube facade: nothing is requested from Google until the user clicks. */
@@ -1720,7 +2001,7 @@ button.ff-nav__link:hover {
 
 .ff-footer {
   margin-top: var(--ff-space-section);
-  background: rgba(0, 24, 50, 0.92);
+  background: rgba(0, 26, 54, 0.92);
   box-shadow: var(--ff-shadow-nav);
 }
 .ff-footer__inner {
@@ -1745,7 +2026,7 @@ button.ff-nav__link:hover {
 .ff-footer__title {
   margin: 0;
   font-size: var(--wp--preset--font-size--large);
-  font-weight: 800;
+  /* Weight set in §2b (.ff-footer__title), not here. */
 }
 .ff-footer__title a {
   color: #fff;
@@ -1794,7 +2075,7 @@ button.ff-nav__link:hover {
 .ff-footer__group a {
   display: inline-block;
   padding: 3px 0;
-  color: #dfe9f4;
+  color: var(--ff-text-soft);
   font-size: var(--wp--preset--font-size--small);
   font-weight: 600;
   text-decoration: none;

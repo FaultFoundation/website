@@ -42,6 +42,12 @@ export const metadata: Metadata = {
   },
 };
 
+// Parser-blocking, runs before the header paints: stamps the cached
+// signed-in hint (lib/auth-hint.ts) onto <html> so CSS can show the avatar
+// immediately for a signed-in visitor instead of it popping in after the
+// cross-origin session check resolves.
+const AUTH_HINT_INLINE = `try{document.documentElement.dataset.auth=localStorage.getItem("ff-auth")==="1"?"in":"out"}catch(e){document.documentElement.dataset.auth="out"}`;
+
 // Inline gtag bootstrap as served on the live site (Google Site Kit).
 const GTAG_INLINE = `window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}
 gtag("set","linker",{"domains":["fault.foundation"]});
@@ -54,8 +60,11 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en-US">
+    // suppressHydrationWarning: the auth-hint script below mutates <html>
+    // (data-auth) before React hydrates.
+    <html lang="en-US" suppressHydrationWarning>
       <body className="wp-custom-logo wp-embed-responsive wp-theme-twentytwentyfive">
+        <script dangerouslySetInnerHTML={{ __html: AUTH_HINT_INLINE }} />
         {/* Floating donation widget, as on the live site */}
         <givebutter-widget id="pEZdY1"></givebutter-widget>
         <div className="wp-site-blocks">

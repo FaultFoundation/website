@@ -24,7 +24,7 @@ export function HashTarget() {
     };
 
     openTarget(false);
-    // The Manrope webfont reflows the page after hydration, which can
+    // The Montserrat webfont reflows the page after hydration, which can
     // shift the target away from where the initial jump landed —
     // re-anchor once fonts settle, unless the reader already scrolled.
     let userScrolled = false;

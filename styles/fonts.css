@@ -1,3 +1,69 @@
-/* Self-hosted fonts (from live wp-fonts-local). Montserrat was installed on the
-   WP site but used by zero elements — intentionally not shipped. */
-@font-face{font-family:Manrope;font-style:normal;font-weight:200 800;font-display:fallback;src:url('/fonts/manrope/Manrope-VariableFont_wght.woff2') format('woff2');}
+/* ============================================================
+   Self-hosted brand typefaces. See BRAND.md.
+
+   Montserrat is the brand book's working typeface (Bold headers,
+   SemiBold subheads, Regular subheaders, Light body); Fira Code is
+   the brand font, used for eyebrows, metadata and code.
+
+   Montserrat ships as Google's variable woff2, latin + latin-ext
+   only — the site has no Cyrillic or Vietnamese copy, and dropping
+   those subsets saves ~180 KB. Roman and italic are separate faces
+   on purpose: Montserrat's true italic is a different design, and
+   synthesised oblique on a geometric sans looks wrong at the sizes
+   article prose uses.
+
+   Fira Code ships as the single full variable face vendored from the
+   Twenty Twenty-Five theme — one file, every glyph, and it is only
+   ever loaded for small runs of text.
+
+   font-display: fallback matches the Manrope face this replaced:
+   a short block, then swap, then give up. Both families are
+   metrically far enough from the system stack that `swap` alone
+   caused a visible reflow (see components/HashTarget.tsx).
+   ============================================================ */
+
+
+@font-face {
+  font-family: Montserrat;
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: fallback;
+  src: url('/fonts/montserrat/Montserrat-Roman-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: Montserrat;
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: fallback;
+  src: url('/fonts/montserrat/Montserrat-Roman-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: Montserrat;
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: fallback;
+  src: url('/fonts/montserrat/Montserrat-Italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: Montserrat;
+  font-style: italic;
+  font-weight: 100 900;
+  font-display: fallback;
+  src: url('/fonts/montserrat/Montserrat-Italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+
+@font-face {
+  font-family: 'Fira Code';
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: fallback;
+  src: url('/fonts/fira-code/FiraCode-VariableFont_wght.woff2') format('woff2');
+}
